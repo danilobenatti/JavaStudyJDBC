@@ -1,34 +1,23 @@
 package br.com.ecosensor;
 
+import br.com.ecosensor.util.ConnectionDB;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.*;
 
 public class Principal {
 	private static final Logger logger = LogManager.getLogger(Principal.class);
-	private static final String USER = "root";
-	private static final String PASSWORD = "123456";
-	private static final String ENCODING = "UTF8";
-	private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
-	private static final String URL = "jdbc:mysql://localhost:3306/java_course?useTimezone=true&serverTimezone=America/Sao_Paulo";
 	
 	public static void main(String[] args) throws ClassNotFoundException {
 		
-		Properties props = new Properties();
-		props.put("user", USER);
-		props.put("password", PASSWORD);
-		props.put("encoding", ENCODING);
-		
-		Class.forName(DRIVER);
-		try (Connection conn = DriverManager.getConnection(URL, props)) {
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		try (Connection conn = ConnectionDB.getInstance()) {
 			logger.log(Level.INFO, conn.getCatalog());
 			try (Statement statement = conn.createStatement()) {
 				ResultSet resultSet = statement.executeQuery("SELECT * FROM tbl_product");
