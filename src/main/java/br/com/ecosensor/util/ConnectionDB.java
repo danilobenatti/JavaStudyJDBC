@@ -1,11 +1,15 @@
 package br.com.ecosensor.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
-
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConnectionDB {
+	
 	private static final String USER = "root";
 	private static final String PASSWORD = "123456";
 	private static final String ENCODING = "UTF8";
