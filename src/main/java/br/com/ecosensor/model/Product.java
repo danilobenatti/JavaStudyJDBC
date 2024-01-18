@@ -18,6 +18,7 @@ public class Product {
 	private String name;
 	private String description;
 	private Float price = 0F;
+	private Category category;
 	private Date dateCreate;
 	private Date dateUpdate;
 	

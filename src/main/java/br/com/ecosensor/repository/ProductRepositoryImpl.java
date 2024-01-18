@@ -1,7 +1,11 @@
 package br.com.ecosensor.repository;
 
+import br.com.ecosensor.model.Category;
 import br.com.ecosensor.model.Product;
 import br.com.ecosensor.util.ConnectionDB;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -10,24 +14,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductRepositoryImpl implements Repository<Product> {
+	static Logger logger = LogManager.getLogger(ProductRepositoryImpl.class);
 	
-	private Connection connection() throws SQLException {
+	private Connection connection() {
 		return ConnectionDB.getInstance();
 	}
 	
 	@Override
 	public List<Product> listAll() {
 		List<Product> products = new ArrayList<>();
-		String query = "SELECT * FROM tbl_product";
+		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN " +
+				"tbl_category AS c ON p.id_category = c.id";
 		try (Statement stmt = connection().prepareStatement(query)) {
 			try (ResultSet resultSet = stmt.executeQuery(query)) {
 				while (resultSet.next()) {
-					Product product = getProduct(resultSet);
+					Product product = getterProduct(resultSet);
 					products.add(product);
 				}
 			}
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			logger.log(Level.ERROR, ex);
 		}
 		return products;
 	}
@@ -35,16 +41,18 @@ public class ProductRepositoryImpl implements Repository<Product> {
 	@Override
 	public Product searchById(Long id) {
 		Product product = new Product();
-		String query = "SELECT * FROM tbl_product WHERE id = ?";
+		Category category = new Category();
+		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN " +
+				"tbl_category AS c ON p.id_category = c.id WHERE p.id = ?";
 		try (PreparedStatement stmt = connection().prepareStatement(query)) {
 			stmt.setLong(1, id);
 			try (ResultSet resultSet = stmt.executeQuery()) {
 				if (resultSet.next()) {
-					setProduct(product, resultSet);
+					setterProduct(product, category, resultSet);
 				}
 			}
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			logger.log(Level.ERROR, ex);
 		}
 		return product;
 	}
@@ -53,13 +61,15 @@ public class ProductRepositoryImpl implements Repository<Product> {
 	public void save(Product product) {
 		String sql;
 		Product p = new Product();
-		if (product.getId() != null) {
+		if (product.getId() != null && product.getId() > 0) {
 			p = searchById(product.getId());
 			sql = "UPDATE tbl_product SET col_name = ?, col_description = ? ," +
-					" col_price = ?, col_date_update = ? WHERE id = " + p.getId();
+					" col_price = ?, col_date_update = ?, id_category = ?" +
+					" WHERE id = " + product.getId();
 		} else {
 			sql = "INSERT INTO tbl_product (id, col_name, col_description, " +
-					"col_price, col_date_create) VALUES (null, ?, ?, ?, ?)";
+					"col_price, col_date_create, id_category) VALUES (null, " +
+					"?, ?, ?, ?, ?)";
 		}
 		try (PreparedStatement stmt = connection().prepareStatement(sql)) {
 			stmt.setString(1, product.getName() != null ? product.getName() :
@@ -69,9 +79,11 @@ public class ProductRepositoryImpl implements Repository<Product> {
 			stmt.setFloat(3, product.getPrice() != null ? product.getPrice()
 					: p.getPrice());
 			stmt.setDate(4, Date.valueOf(LocalDate.now(ZoneId.systemDefault())));
+			stmt.setLong(5, product.getCategory() != null ?
+					product.getCategory().getId() : p.getCategory().getId());
 			stmt.executeUpdate();
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			logger.log(Level.ERROR, ex);
 		}
 	}
 	
@@ -82,26 +94,33 @@ public class ProductRepositoryImpl implements Repository<Product> {
 			stmt.setLong(1, id);
 			stmt.executeUpdate();
 		} catch (SQLException ex) {
-			ex.printStackTrace();
+			logger.log(Level.ERROR, ex);
 		}
 	}
 	
-	private static Product getProduct(ResultSet resultSet) throws SQLException {
+	private static Product getterProduct(ResultSet resultSet) throws SQLException {
 		Product product = new Product();
-		makeResultSet(product, resultSet);
+		Category category = new Category();
+		makerProduct(product, category, resultSet);
 		return product;
 	}
 	
-	private static void setProduct(Product product, ResultSet resultSet) throws SQLException {
-		makeResultSet(product, resultSet);
+	private static void setterProduct(Product product, Category category,
+									  ResultSet resultSet) throws SQLException {
+		makerProduct(product, category, resultSet);
 	}
 	
-	private static void makeResultSet(Product product, ResultSet resultSet) throws SQLException {
+	private static void makerProduct(Product product, Category category,
+									 ResultSet resultSet) throws SQLException {
 		product.setId(resultSet.getLong("id"));
-		product.setName(resultSet.getString("col_name"));
-		product.setDescription(resultSet.getString("col_description"));
-		product.setPrice(resultSet.getFloat("col_price"));
-		product.setDateCreate(resultSet.getDate("col_date_create"));
-		product.setDateUpdate(resultSet.getDate("col_date_update"));
+		product.setName(resultSet.getString("p.col_name"));
+		product.setDescription(resultSet.getString("p.col_description"));
+		product.setPrice(resultSet.getFloat("p.col_price"));
+		product.setDateCreate(resultSet.getDate("p.col_date_create"));
+		product.setDateUpdate(resultSet.getDate("p.col_date_update"));
+		product.setCategory(category);
+		category.setId(resultSet.getLong("c.id"));
+		category.setName(resultSet.getString("c.col_name"));
+		category.setProducts(List.of(product));
 	}
 }
