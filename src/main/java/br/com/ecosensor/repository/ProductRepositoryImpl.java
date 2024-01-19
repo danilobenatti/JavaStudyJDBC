@@ -16,8 +16,8 @@ import java.util.List;
 public class ProductRepositoryImpl implements Repository<Product> {
 	static Logger logger = LogManager.getLogger(ProductRepositoryImpl.class);
 	
-	private Connection connection() {
-		return ConnectionDB.getInstance();
+	private Connection connection() throws SQLException {
+		return ConnectionDB.getPoolConnection();
 	}
 	
 	@Override
@@ -25,12 +25,12 @@ public class ProductRepositoryImpl implements Repository<Product> {
 		List<Product> products = new ArrayList<>();
 		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN " +
 				"tbl_category AS c ON p.id_category = c.id";
-		try (Statement stmt = connection().prepareStatement(query)) {
-			try (ResultSet resultSet = stmt.executeQuery(query)) {
-				while (resultSet.next()) {
-					Product product = getterProduct(resultSet);
-					products.add(product);
-				}
+		try (Connection conn = connection();
+			Statement stmt = conn.prepareStatement(query);
+			ResultSet resultSet = stmt.executeQuery(query)) {
+			while (resultSet.next()) {
+				Product product = getterProduct(resultSet);
+				products.add(product);
 			}
 		} catch (SQLException ex) {
 			logger.log(Level.ERROR, ex);
@@ -44,7 +44,8 @@ public class ProductRepositoryImpl implements Repository<Product> {
 		Category category = new Category();
 		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN " +
 				"tbl_category AS c ON p.id_category = c.id WHERE p.id = ?";
-		try (PreparedStatement stmt = connection().prepareStatement(query)) {
+		try (Connection conn = connection();
+			PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setLong(1, id);
 			try (ResultSet resultSet = stmt.executeQuery()) {
 				if (resultSet.next()) {
@@ -71,7 +72,8 @@ public class ProductRepositoryImpl implements Repository<Product> {
 					"col_price, col_date_create, id_category) VALUES (null, " +
 					"?, ?, ?, ?, ?)";
 		}
-		try (PreparedStatement stmt = connection().prepareStatement(sql)) {
+		try (Connection conn = connection();
+			PreparedStatement stmt = conn.prepareStatement(sql)) {
 			stmt.setString(1, product.getName() != null ? product.getName() :
 					p.getName());
 			stmt.setString(2, product.getDescription() != null ?
@@ -90,7 +92,8 @@ public class ProductRepositoryImpl implements Repository<Product> {
 	@Override
 	public void delete(Long id) {
 		String sql = "DELETE FROM tbl_product WHERE id = ?";
-		try (PreparedStatement stmt = connection().prepareStatement(sql)) {
+		try (Connection conn = connection();
+			PreparedStatement stmt = conn.prepareStatement(sql)) {
 			stmt.setLong(1, id);
 			stmt.executeUpdate();
 		} catch (SQLException ex) {
