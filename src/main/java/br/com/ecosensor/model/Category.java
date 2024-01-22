@@ -3,6 +3,7 @@ package br.com.ecosensor.model;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -19,4 +20,6 @@ public class Category {
 	private String name;
 	@ToString.Exclude
 	private List<Product> products = new ArrayList<>();
+	private Date dateCreate;
+	private Date dateUpdate;
 }

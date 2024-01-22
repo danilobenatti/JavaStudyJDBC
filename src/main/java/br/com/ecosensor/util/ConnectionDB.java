@@ -10,36 +10,39 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.joinWith;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConnectionDB {
 	
 	private static final String USER = "root";
 	private static final String PASSWORD = "123456";
-	private static final String ENCODING = "UTF8";
-	private static final String URL = "jdbc:mysql://localhost:3306/java_course?useTimezone=true&serverTimezone=America/Sao_Paulo";
-	private static BasicDataSource pool;
+	private static final String ENCODING = "useUnicode=true;characterEncoding=UTF-8";
+	private static final String TIMEZONE = "useTimezone=true;serverTimezone=America/Sao_Paulo";
+	private static final String URL = "jdbc:mysql://localhost:3306/java_course";
+	private static BasicDataSource dataSource;
 	static Logger logger = LogManager.getLogger(ConnectionDB.class);
 	
-	public static BasicDataSource getPool() {
-		if (pool == null) {
-			pool = new BasicDataSource();
-			pool.setDriverClassName("com.mysql.cj.jdbc.Driver");
-			pool.setUrl(URL);
-			pool.setUsername(USER);
-			pool.setPassword(PASSWORD);
-			pool.setInitialSize(3);
-			pool.setMinIdle(3);
-			pool.setMaxIdle(8);
-			pool.setMaxTotal(8);
-			pool.setConnectionProperties(ENCODING);
+	public static BasicDataSource getDataSource() {
+		if (dataSource == null || dataSource.isClosed()) {
+			dataSource = new BasicDataSource();
+			dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+			dataSource.setUrl(URL);
+			dataSource.setUsername(USER);
+			dataSource.setPassword(PASSWORD);
+			dataSource.setInitialSize(3);
+			dataSource.setMinIdle(3);
+			dataSource.setMaxIdle(8);
+			dataSource.setMaxTotal(8);
+			dataSource.setConnectionProperties(joinWith(";", ENCODING, TIMEZONE));
+			dataSource.setDefaultSchema("java_course");
+			dataSource.setDefaultAutoCommit(false);
 		}
-		var msg = join("Start connection: ", pool.getDefaultCatalog());
-		logger.info(msg);
-		return pool;
+		logger.info(() -> join("Start connection: ", dataSource.getDefaultCatalog()));
+		return dataSource;
 	}
 	
-	public static Connection getPoolConnection() throws SQLException {
-		return getPool().getConnection();
+	public static Connection getDataSourceConnection() throws SQLException {
+		return getDataSource().getConnection();
 	}
 }

@@ -21,5 +21,5 @@ public class Product {
 	private Category category;
 	private Date dateCreate;
 	private Date dateUpdate;
-	
+	private String sku;
 }
