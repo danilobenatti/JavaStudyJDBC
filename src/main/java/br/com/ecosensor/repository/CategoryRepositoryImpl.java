@@ -1,6 +1,9 @@
 package br.com.ecosensor.repository;
 
 import br.com.ecosensor.model.Category;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,11 +17,14 @@ import java.util.List;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class CategoryRepositoryImpl implements Repository<Category> {
 	
 	static Logger logger = LogManager.getLogger(CategoryRepositoryImpl.class);
 	
-	private final Connection conn;
+	private Connection conn;
 	
 	public CategoryRepositoryImpl(Connection conn) {
 		this.conn = conn;
@@ -97,12 +103,10 @@ public class CategoryRepositoryImpl implements Repository<Category> {
 	
 	@Override
 	public void delete(Long id) {
-		String sql = "DELETE FROM tbl_category WHERE id = ?";
-		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+		try (Statement stmt = conn.createStatement()) {
 			if (conn.getAutoCommit())
 				conn.setAutoCommit(false);
-			stmt.setLong(1, id);
-			stmt.executeUpdate();
+			stmt.execute("DELETE FROM tbl_category WHERE id = " + id);
 			conn.commit();
 		} catch (SQLException ex) {
 			logger.log(Level.ERROR, ex);

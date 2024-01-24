@@ -4,12 +4,10 @@ import lombok.*;
 
 import java.util.Date;
 
-@Getter
-@Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 public class Product {
 	
@@ -17,9 +15,12 @@ public class Product {
 	private Long id;
 	private String name;
 	private String description;
+	@Builder.Default
 	private Float price = 0F;
 	private Category category;
 	private Date dateCreate;
 	private Date dateUpdate;
 	private String sku;
 }
+
+
