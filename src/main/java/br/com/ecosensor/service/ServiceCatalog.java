@@ -15,8 +15,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class ServiceCatalog implements Service {
-	static Logger logger = LogManager.getLogger(ServiceCatalog.class);
+	
+	static Logger log = LogManager.getLogger(ServiceCatalog.class);
+	
 	private final Repository<Product> productRepository;
+	
 	private final Repository<Category> categoryRepository;
 	
 	public ServiceCatalog() {
@@ -68,7 +71,7 @@ public class ServiceCatalog implements Service {
 				conn.commit();
 			} catch (SQLException ex) {
 				conn.rollback();
-				logger.info(Level.ERROR, ex);
+				log.info(Level.ERROR, ex);
 			}
 			return productNew;
 		}
@@ -86,7 +89,7 @@ public class ServiceCatalog implements Service {
 				conn.commit();
 			} catch (SQLException ex) {
 				conn.rollback();
-				logger.info(Level.ERROR, ex);
+				log.info(Level.ERROR, ex);
 			}
 			return categoryNew;
 		}
@@ -103,7 +106,7 @@ public class ServiceCatalog implements Service {
 				conn.commit();
 			} catch (SQLException ex) {
 				conn.rollback();
-				logger.info(Level.ERROR, ex);
+				log.info(Level.ERROR, ex);
 			}
 		}
 	}
@@ -119,13 +122,14 @@ public class ServiceCatalog implements Service {
 				conn.commit();
 			} catch (SQLException ex) {
 				conn.rollback();
-				logger.info(Level.ERROR, ex);
+				log.info(Level.ERROR, ex);
 			}
 		}
 	}
 	
 	@Override
-	public void saveProductWithCategory(Product product, Category category) throws SQLException {
+	public void saveProductWithCategory(Product product, Category category)
+			throws SQLException {
 		try (Connection conn = ConnectionDB.getDataSourceConnection()) {
 			productRepository.setConn(conn);
 			categoryRepository.setConn(conn);
@@ -138,7 +142,7 @@ public class ServiceCatalog implements Service {
 				conn.commit();
 			} catch (SQLException ex) {
 				conn.rollback();
-				logger.info(Level.ERROR, ex);
+				log.info(Level.ERROR, ex);
 			}
 		}
 	}

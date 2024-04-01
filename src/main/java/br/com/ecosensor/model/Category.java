@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Builder
+@Builder(builderMethodName = "categoryBuilder", setterPrefix = "with")
 public class Category {
 	
 	@EqualsAndHashCode.Include

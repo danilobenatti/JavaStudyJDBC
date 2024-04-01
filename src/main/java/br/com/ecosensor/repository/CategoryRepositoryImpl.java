@@ -22,7 +22,7 @@ import static org.apache.commons.lang3.StringUtils.joinWith;
 @NoArgsConstructor
 public class CategoryRepositoryImpl implements Repository<Category> {
 	
-	static Logger logger = LogManager.getLogger(CategoryRepositoryImpl.class);
+	static Logger log = LogManager.getLogger(CategoryRepositoryImpl.class);
 	
 	private Connection conn;
 	
@@ -35,13 +35,13 @@ public class CategoryRepositoryImpl implements Repository<Category> {
 		List<Category> categories = new ArrayList<>();
 		String query = "SELECT * FROM tbl_category";
 		try (Statement stmt = conn.createStatement();
-			 ResultSet rs = stmt.executeQuery(query)) {
+				ResultSet rs = stmt.executeQuery(query)) {
 			while (rs.next()) {
 				Category category = getterCategory(rs);
 				categories.add(category);
 			}
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 		}
 		return categories;
 	}
@@ -58,7 +58,7 @@ public class CategoryRepositoryImpl implements Repository<Category> {
 				}
 			}
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 		}
 		return category;
 	}
@@ -69,11 +69,11 @@ public class CategoryRepositoryImpl implements Repository<Category> {
 		Category c = new Category();
 		if (category.getId() != null && category.getId() > 0) {
 			c = searchById(category.getId());
-			sql = "UPDATE tbl_category SET col_name = ?, col_date_update = ? " +
-					"WHERE id = " + category.getId();
+			sql = "UPDATE tbl_category SET col_name = ?, col_date_update = ? "
+					+ "WHERE id = " + category.getId();
 		} else {
-			sql = "INSERT INTO tbl_category (id, col_name, col_date_create) " +
-					"VALUES (null, ?, ?)";
+			sql = "INSERT INTO tbl_category (id, col_name, col_date_create) "
+					+ "VALUE (null, ?, ?)";
 		}
 		try (PreparedStatement stmt = conn.prepareStatement(sql,
 				Statement.RETURN_GENERATED_KEYS)) {
@@ -86,16 +86,16 @@ public class CategoryRepositoryImpl implements Repository<Category> {
 				if (rs.next()) {
 					long id = rs.getLong(1);
 					category.setId(id);
-					logger.info(() -> joinWith(SPACE, "New category id:", id));
+					log.info(() -> joinWith(SPACE, "New category id:", id));
 				}
 			}
 			conn.commit();
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 			try {
 				conn.rollback();
 			} catch (SQLException e) {
-				logger.log(Level.ERROR, e);
+				log.log(Level.ERROR, e);
 			}
 		}
 		return category;
@@ -109,28 +109,29 @@ public class CategoryRepositoryImpl implements Repository<Category> {
 			stmt.execute("DELETE FROM tbl_category WHERE id = " + id);
 			conn.commit();
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 			try {
 				conn.rollback();
 			} catch (SQLException e) {
-				logger.log(Level.ERROR, e);
+				log.log(Level.ERROR, e);
 			}
 		}
 	}
 	
-	private static Category getterCategory(ResultSet resultSet) throws SQLException {
+	private static Category getterCategory(ResultSet resultSet)
+			throws SQLException {
 		Category category = new Category();
 		makerCategory(category, resultSet);
 		return category;
 	}
 	
-	private static void setterCategory(Category category,
-									   ResultSet resultSet) throws SQLException {
+	private static void setterCategory(Category category, ResultSet resultSet)
+			throws SQLException {
 		makerCategory(category, resultSet);
 	}
 	
-	private static void makerCategory(Category category,
-									  ResultSet resultSet) throws SQLException {
+	private static void makerCategory(Category category, ResultSet resultSet)
+			throws SQLException {
 		category.setId(resultSet.getLong("id"));
 		category.setName(resultSet.getString("col_name"));
 		category.setDateCreate(resultSet.getDate("col_date_create"));
@@ -138,7 +139,7 @@ public class CategoryRepositoryImpl implements Repository<Category> {
 	}
 	
 	private static void saveCategory(Category c1, Category c2,
-									 PreparedStatement stmt) throws SQLException {
+			PreparedStatement stmt) throws SQLException {
 		stmt.setString(1, c1.getName() != null ? c1.getName() : c2.getName());
 		stmt.setDate(2, Date.valueOf(LocalDate.now(ZoneId.systemDefault())));
 	}

@@ -23,7 +23,7 @@ import static org.apache.commons.lang3.StringUtils.joinWith;
 @NoArgsConstructor
 public class ProductRepositoryImpl implements Repository<Product> {
 	
-	static Logger logger = LogManager.getLogger(ProductRepositoryImpl.class);
+	static Logger log = LogManager.getLogger(ProductRepositoryImpl.class);
 	
 	private Connection conn;
 	
@@ -34,16 +34,16 @@ public class ProductRepositoryImpl implements Repository<Product> {
 	@Override
 	public List<Product> listAll() {
 		List<Product> products = new ArrayList<>();
-		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN " +
-				"tbl_category AS c ON p.id_category = c.id";
+		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN "
+				+ "tbl_category AS c ON p.id_category = c.id";
 		try (Statement stmt = conn.createStatement();
-			 ResultSet rs = stmt.executeQuery(query)) {
+				ResultSet rs = stmt.executeQuery(query)) {
 			while (rs.next()) {
 				Product product = getterProduct(rs);
 				products.add(product);
 			}
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 		}
 		return products;
 	}
@@ -52,8 +52,8 @@ public class ProductRepositoryImpl implements Repository<Product> {
 	public Product searchById(Long id) {
 		Product product = new Product();
 		Category category = new Category();
-		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN " +
-				"tbl_category AS c ON p.id_category = c.id WHERE p.id = ?";
+		String query = "SELECT p.*, c.* FROM tbl_product AS p INNER JOIN "
+				+ "tbl_category AS c ON p.id_category = c.id WHERE p.id = ?";
 		try (PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setLong(1, id);
 			try (ResultSet rs = stmt.executeQuery()) {
@@ -62,7 +62,7 @@ public class ProductRepositoryImpl implements Repository<Product> {
 				}
 			}
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 		}
 		return product;
 	}
@@ -73,16 +73,16 @@ public class ProductRepositoryImpl implements Repository<Product> {
 		Product p = new Product();
 		if (product.getId() != null && product.getId() > 0) {
 			p = searchById(product.getId());
-			sql = "UPDATE tbl_product SET col_name = ?, col_description = ?, " +
-					"col_price = ?, col_date_update = ?, id_category = ?, " +
-					"col_sku = ? WHERE id = " + product.getId();
+			sql = "UPDATE tbl_product SET col_name = ?, col_description = ?, "
+					+ "col_price = ?, col_date_update = ?, id_category = ?, "
+					+ "col_sku = ? WHERE id = " + product.getId();
 		} else {
-			sql = "INSERT INTO tbl_product (id, col_name, col_description, " +
-					"col_price, col_date_create, id_category, col_sku) VALUES" +
-					" (null, ?, ?, ?, ?, ?, ?)";
+			sql = "INSERT INTO tbl_product (id, col_name, col_description, "
+					+ "col_price, col_date_create, id_category, col_sku) VALUE"
+					+ " (null, ?, ?, ?, ?, ?, ?)";
 		}
 		try (PreparedStatement stmt = conn.prepareStatement(sql,
-					 Statement.RETURN_GENERATED_KEYS)) {
+				Statement.RETURN_GENERATED_KEYS)) {
 			if (conn.getAutoCommit())
 				conn.setAutoCommit(false);
 			saveProduct(product, p, stmt);
@@ -92,16 +92,16 @@ public class ProductRepositoryImpl implements Repository<Product> {
 				if (rs.next()) {
 					long id = rs.getLong(1);
 					product.setId(id);
-					logger.info(() -> joinWith(SPACE, "New product id:", id));
+					log.info(() -> joinWith(SPACE, "New product id:", id));
 				}
 			}
 			conn.commit();
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 			try {
 				conn.rollback();
 			} catch (SQLException e) {
-				logger.log(Level.ERROR, e);
+				log.log(Level.ERROR, e);
 			}
 		}
 		return product;
@@ -115,16 +115,17 @@ public class ProductRepositoryImpl implements Repository<Product> {
 			stmt.executeUpdate("DELETE FROM tbl_product WHERE id = " + id);
 			conn.commit();
 		} catch (SQLException ex) {
-			logger.log(Level.ERROR, ex);
+			log.log(Level.ERROR, ex);
 			try {
 				conn.rollback();
 			} catch (SQLException e) {
-				logger.log(Level.ERROR, e);
+				log.log(Level.ERROR, e);
 			}
 		}
 	}
 	
-	private static Product getterProduct(ResultSet resultSet) throws SQLException {
+	private static Product getterProduct(ResultSet resultSet)
+			throws SQLException {
 		Product product = new Product();
 		Category category = new Category();
 		makerProduct(product, category, resultSet);
@@ -132,12 +133,12 @@ public class ProductRepositoryImpl implements Repository<Product> {
 	}
 	
 	private static void setterProduct(Product product, Category category,
-									  ResultSet resultSet) throws SQLException {
+			ResultSet resultSet) throws SQLException {
 		makerProduct(product, category, resultSet);
 	}
 	
 	private static void makerProduct(Product product, Category category,
-									 ResultSet resultSet) throws SQLException {
+			ResultSet resultSet) throws SQLException {
 		product.setId(resultSet.getLong("id"));
 		product.setName(resultSet.getString("p.col_name"));
 		product.setDescription(resultSet.getString("p.col_description"));
@@ -154,14 +155,14 @@ public class ProductRepositoryImpl implements Repository<Product> {
 	}
 	
 	private static void saveProduct(Product p1, Product p2,
-									PreparedStatement stmt) throws SQLException {
+			PreparedStatement stmt) throws SQLException {
 		stmt.setString(1, p1.getName() != null ? p1.getName() : p2.getName());
-		stmt.setString(2, p1.getDescription() != null ? p1.getDescription() :
-				p2.getDescription());
+		stmt.setString(2, p1.getDescription() != null ? p1.getDescription()
+				: p2.getDescription());
 		stmt.setFloat(3, p1.getPrice() != null ? p1.getPrice() : p2.getPrice());
 		stmt.setDate(4, Date.valueOf(LocalDate.now(ZoneId.systemDefault())));
-		stmt.setLong(5, p1.getCategory() != null ? p1.getCategory().getId() :
-				p2.getCategory().getId());
+		stmt.setLong(5, p1.getCategory() != null ? p1.getCategory().getId()
+				: p2.getCategory().getId());
 		stmt.setString(6, p1.getSku() != null ? p1.getSku() : p2.getSku());
 	}
 }

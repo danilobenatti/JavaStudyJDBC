@@ -8,7 +8,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Builder
+@Builder(builderMethodName = "productBuilder", setterPrefix = "with")
 public class Product {
 	
 	@EqualsAndHashCode.Include

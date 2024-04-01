@@ -20,8 +20,10 @@ public class ConnectionDB {
 	private static final String ENCODING = "useUnicode=true;characterEncoding=UTF-8";
 	private static final String TIMEZONE = "useTimezone=true;serverTimezone=America/Sao_Paulo";
 	private static final String URL = "jdbc:mysql://localhost:3306/java_course";
+	
 	private static BasicDataSource dataSource;
-	static Logger logger = LogManager.getLogger(ConnectionDB.class);
+	
+	static Logger log = LogManager.getLogger(ConnectionDB.class);
 	
 	public static BasicDataSource getDataSource() {
 		if (dataSource == null || dataSource.isClosed()) {
@@ -38,7 +40,7 @@ public class ConnectionDB {
 			dataSource.setDefaultSchema("java_course");
 			dataSource.setDefaultAutoCommit(false);
 		}
-		logger.info(() -> join("Start connection: ", dataSource.getDefaultCatalog()));
+		log.info(() -> join("Start connection: ", dataSource.getDefaultCatalog()));
 		return dataSource;
 	}
 	
